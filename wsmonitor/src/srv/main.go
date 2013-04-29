@@ -8,6 +8,8 @@ import (
 	"time"
 	_"strconv"
 	"math/rand"
+	"runtime"
+	"os/exec"
 )
 
 var port *int = flag.Int("p", 23456, "Port to listen.")
@@ -74,6 +76,10 @@ type Event struct {
 func main() {
 	flag.Parse()
 
+
+	
+	
+
 	hubs = map[string]*hub {
 		"time" : &hub{connections:make(map[*websocket.Conn]bool)},
 	}
@@ -87,8 +93,28 @@ func main() {
 
 	http.Handle("/ws", websocket.Handler(wsServer))
 	http.Handle("/", http.FileServer(http.Dir("static")))
+	openBrowser("http://localhost:23456/")
 	err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
 	if err != nil {
 		panic("ListenANdServe: " + err.Error())
+	}
+
+	
+}
+
+func openBrowser(url string) {
+	var err error
+	switch runtime.GOOS {
+	case "linux":
+	    err = exec.Command("xdg-open", url).Start()
+	case "windows":
+		err = exec.Command(`C:\Windows\System32\rundll32.exe`, "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+	    err = exec.Command("open", url).Start()
+	default:
+	    err = fmt.Errorf("unsupported platform")
+	}
+	if err !=nil {
+		 panic(err)
 	}
 }
