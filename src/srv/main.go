@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strconv"
 	"time"
+	"math"
 )
 
 var port *int = flag.Int("p", 23456, "Port to listen.")
@@ -82,15 +83,19 @@ type Event struct {
 	StringValue string
 }
 
+var r *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+
 func main() {
 	flag.Parse()
 	hubs = map[string]*hub{
 		"time": &hub{connections: make(map[*websocket.Conn]bool)},
 	}
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	
 	go tickAndDo(func(now time.Time) {
 		for ws := range hubs["time"].connections {
-			event := &Event{TimeStamp: now.Unix(), IntValue: r.Int63n(200)}
+			x := now.UnixNano() / 1000000
+			val := int64 ( math.Sin(float64((x /300))) *100 )+ r.Int63n(20)
+			event := &Event{TimeStamp: x, IntValue:val}
 			websocket.JSON.Send(ws, *event)
 		}
 	}, *tick)
@@ -104,8 +109,9 @@ func main() {
 	if err != nil {
 		panic("ListenANdServe: " + err.Error())
 	}
-
 }
+
+
 
 func openUrlInBrowser(url string) {
 	var err error
