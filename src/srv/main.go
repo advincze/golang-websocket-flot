@@ -3,15 +3,15 @@ package main
 import (
 	"code.google.com/p/go.net/websocket"
 	"flag"
-	"log"
 	"fmt"
+	"log"
+	"math"
 	"math/rand"
 	"net/http"
 	"os/exec"
 	"runtime"
 	"strconv"
 	"time"
-	"math"
 )
 
 var port *int = flag.Int("p", 23456, "Port to listen.")
@@ -90,12 +90,12 @@ func main() {
 	hubs = map[string]*hub{
 		"time": &hub{connections: make(map[*websocket.Conn]bool)},
 	}
-	
+
 	go tickAndDo(func(now time.Time) {
 		for ws := range hubs["time"].connections {
 			x := now.UnixNano() / 1000000
-			val := int64 ( math.Sin(float64((x /300))) *100 )+ r.Int63n(20)
-			event := &Event{TimeStamp: x, IntValue:val}
+			val := int64(math.Sin(float64((x/300)))*100) + r.Int63n(20)
+			event := &Event{TimeStamp: x, IntValue: val}
 			websocket.JSON.Send(ws, *event)
 		}
 	}, *tick)
@@ -110,8 +110,6 @@ func main() {
 		panic("ListenANdServe: " + err.Error())
 	}
 }
-
-
 
 func openUrlInBrowser(url string) {
 	var err error
